@@ -67,7 +67,6 @@ mem.info().then(info => {
 
 // Show days, hours, mins, sec
 function secondsToDhms(seconds) {
-  // console.log(seconds);
   seconds = +seconds;
   const d = Math.floor(seconds / (3600 * 24));
   const h = Math.floor((seconds % (3600 * 24)) / 3600);
@@ -79,16 +78,13 @@ function secondsToDhms(seconds) {
 // Send notification
 function notifyUser(options) {
   new Notification(options.title, options);
-  console.log('notifyUser' + new Date());
 }
 
 // Check how much time has passed since notification
 function runNotify(frequency) {
-  console.log('runNotify 87' + new Date());
   if (localStorage.getItem('lastNotify') === null) {
     //store timestamp
     localStorage.setItem('lastNofity', +new Date());
-    console.log('runNotify 91' + new Date());
     return true;
   }
   const notifyTime = new Date(parseInt(localStorage.getItem('lastNotify')));
@@ -97,10 +93,8 @@ function runNotify(frequency) {
   const minutesPassed = Math.ceil(diffTime / 60000);
 
   if (minutesPassed > frequency) {
-    console.log('runNotify 100' + new Date());
     return true;
   } else {
-    console.log('runNotify 103' + new Date());
     return false;
   }
 }

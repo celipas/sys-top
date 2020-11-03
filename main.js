@@ -1,5 +1,5 @@
 const { app, BrowserWindow, Menu } = require('electron');
-const Store = require('./store');
+const Store = require('./Store');
 const log = require('electron-log');
 
 // Set env
@@ -43,6 +43,10 @@ function createMainWindow() {
 
 app.on('ready', () => {
   createMainWindow();
+
+  mainWindow.webContents.on('dom-ready', () => {
+    mainWindow.webContents.send('settings:get', store.get('settings'));
+  });
 
   const mainMenu = Menu.buildFromTemplate(menu);
   Menu.setApplicationMenu(mainMenu);
