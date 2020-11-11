@@ -72,6 +72,7 @@
   <script src="js/monitor.js"></script>
   <script>
     const settingsForm = document.getElementById('settings-form')
+    const nav = document.getElementById('nav')
 
 
     // Get settings
@@ -91,7 +92,6 @@
         cpuOverload,
         alertFrequency
       })
-
       showAlert('Settings Saved')
     })
 
@@ -104,6 +104,11 @@
 
       setTimeout(() => alert.classList.add('hide'), 3000)
     }
+
+    // Toggle nav
+    ipcRenderer.on('nav:toggle', () => {
+      nav.classList.toggle('hide')
+    })
   </script>
 </body>
 

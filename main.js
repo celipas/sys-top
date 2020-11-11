@@ -1,10 +1,12 @@
 const path = require('path');
-const { app, BrowserWindow, Menu, ipcMain, Tray } = require('electron');
+const { app, Menu, ipcMain } = require('electron');
 const Store = require('./Store');
 const log = require('electron-log');
+const MainWindow = require('./MainWindow');
+const AppTray = require('./AppTray');
 
 // Set env
-process.env.NODE_ENV = 'development';
+process.env.NODE_ENV = 'production';
 
 const isDev = process.env.NODE_ENV !== 'production' ? true : false;
 const isMac = process.platform === 'darwin' ? true : false;
@@ -23,26 +25,9 @@ const store = new Store({
   },
 });
 
+// Create MainWindow
 function createMainWindow() {
-  mainWindow = new BrowserWindow({
-    title: 'SysTop',
-    width: isDev ? 900 : 355,
-    height: 500,
-    icon: './assets/icons/icon.png',
-    resizable: isDev ? true : false,
-    show: false,
-    opacity: 0.75,
-    backgroundColor: 'white',
-    webPreferences: {
-      nodeIntegration: true,
-    },
-  });
-
-  if (isDev) {
-    mainWindow.webContents.openDevTools();
-  }
-
-  mainWindow.loadFile('./app/index.html');
+  mainWindow = new MainWindow('./app/index.html', isDev);
 }
 
 app.on('ready', () => {
@@ -66,29 +51,7 @@ app.on('ready', () => {
   const icon = path.join(__dirname, 'assets', 'icons', 'tray_icon.png');
 
   // Create tray
-  tray = new Tray(icon);
-
-  tray.on('click', () => {
-    if (mainWindow.isVisible() === true) {
-      mainWindow.hide();
-    } else {
-      mainWindow.show();
-    }
-  });
-
-  tray.on('right-click', () => {
-    const contextMenu = Menu.buildFromTemplate([
-      {
-        label: 'Quit',
-        click: () => {
-          app.isQuitting = true;
-          app.quit();
-        },
-      },
-    ]);
-
-    tray.popUpContextMenu(contextMenu);
-  });
+  tray = new AppTray(icon, mainWindow);
 
   mainWindow.on('ready', () => (mainWindow = null));
 });
@@ -97,6 +60,15 @@ const menu = [
   ...(isMac ? [{ role: 'appMenu' }] : []),
   {
     role: 'fileMenu',
+  },
+  {
+    label: 'View',
+    submenu: [
+      {
+        label: 'Toggle Navigation',
+        click: () => mainWindow.webContents.send('nav:toggle'),
+      },
+    ],
   },
   ...(isDev
     ? [
@@ -119,6 +91,7 @@ ipcMain.on('settings:set', (e, value) => {
   mainWindow.webContents.send('settings:get', store.get('settings'));
 });
 
+// Quit
 app.on('window-all-closed', () => {
   if (!isMac) {
     app.quit();
@@ -126,7 +99,7 @@ app.on('window-all-closed', () => {
 });
 
 app.on('activate', () => {
-  if (BrowserWindow.getAllWindows().length === 0) {
+  if (MainWindow.getAllWindows().length === 0) {
     createMainWindow();
   }
 });
